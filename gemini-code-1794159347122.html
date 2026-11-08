@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Trading - Professional Futures Journal</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-wine-purple: #170d19;
+            --card-wine: #221225;
+            --border-wine: #361f3a;
+            --text-main: #f3e8f5;
+            --text-muted: #b8a2be;
+            --pink: #ff6584;
+            --green: #2ecc71;
+            --burnt-orange: #e67e22;
+            --mustard-yellow: #f1c40f;
+            --wine-accent: #9b59b6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-wine-purple);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border-wine);
+            padding-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: var(--pink);
+            letter-spacing: 0.5px;
+        }
+
+        .actions button {
+            background-color: var(--card-wine);
+            color: var(--text-main);
+            border: 1px solid var(--border-wine);
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: all 0.2s;
+        }
+
+        .actions button:hover {
+            border-color: var(--pink);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .widget-card {
+            background-color: var(--card-wine);
+            border: 1px solid var(--border-wine);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .widget-card h3 {
+            font-size: 13px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        .metric-value.positive { color: var(--green); }
+        .metric-value.negative { color: var(--pink); }
+
+        /* Widget Manager Panel */
+        .widget-manager-panel {
+            background: var(--card-wine);
+            border: 1px solid var(--border-wine);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .widget-manager-panel.active {
+            display: block;
+        }
+
+        .widget-manager-panel h4 {
+            margin-bottom: 10px;
+            color: var(--pink);
+            font-size: 14px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .checkbox-group label {
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Calculator */
+        .calc-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .calc-group {
+            flex: 1;
+        }
+
+        .calc-group label {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .calc-group input {
+            width: 100%;
+            background: var(--bg-wine-purple);
+            border: 1px solid var(--border-wine);
+            color: var(--text-main);
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .calc-result {
+            margin-top: 12px;
+            font-size: 14px;
+            color: var(--mustard-yellow);
+            font-weight: bold;
+        }
+
+        /* Tables & Sections */
+        .section-container {
+            background-color: var(--card-wine);
+            border: 1px solid var(--border-wine);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .section-header h2 {
+            font-size: 18px;
+            color: var(--text-main);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow: hidden;
+            border-radius: 6px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-wine);
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #1a0f1d;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background-color: rgba(255,255,255,0.02);
+        }
+
+        .btn-primary {
+            background-color: var(--pink);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-primary
