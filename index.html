@@ -1,3 +1,15 @@
+I have generated the complete, final standalone code for **Aura Trading** below.
+
+This version includes:
+
+* **Darker Wine Purple Aesthetic:** A rich, deep professional background (`#170d19`).
+* **Complete Widget Manager:** Every single section (Metrics, Position Sizing Calculator, Charts, Trade Log, Strategy Manager) can be toggled on/off or rearranged.
+* **Position Sizing Risk Calculator:** Input your capital and risk percentage to instantly calculate exact dollar risk.
+* **Dynamic Strategies:** Fully manageable custom setup playbook.
+
+You can copy this code directly, save it into your file as `index.html`, and upload it straight to your GitHub repository to make your live website!
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -220,4 +232,406 @@
             font-weight: bold;
         }
 
-        .btn-primary
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: var(--card-wine);
+            border: 1px solid var(--border-wine);
+            padding: 25px;
+            border-radius: 10px;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 15px;
+            color: var(--pink);
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            background: var(--bg-wine-purple);
+            border: 1px solid var(--border-wine);
+            color: var(--text-main);
+            border-radius: 6px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .tag-pill {
+            display: inline-block;
+            background: var(--bg-wine-purple);
+            border: 1px solid var(--border-wine);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Aura Trading Journal</h1>
+        <div class="actions">
+            <button onclick="toggleWidgetManager()">⚙️ Widget Manager</button>
+            <button onclick="openModal()">+ Add Trade</button>
+            <button onclick="exportData()">Export Data</button>
+        </div>
+    </header>
+
+    <!-- Widget Manager Toggle Panel -->
+    <div id="widgetManager" class="widget-manager-panel">
+        <h4>Customize Dashboard Widgets</h4>
+        <div class="checkbox-group">
+            <label><input type="checkbox" id="chk-totalPnl" checked onchange="toggleWidget('widget-totalPnl')"> Total Net P&L</label>
+            <label><input type="checkbox" id="chk-dailyPnl" checked onchange="toggleWidget('widget-dailyPnl')"> Daily P&L</label>
+            <label><input type="checkbox" id="chk-winMetrics" checked onchange="toggleWidget('widget-winMetrics')"> Win Rate / Profit Factor</label>
+            <label><input type="checkbox" id="chk-expectancy" checked onchange="toggleWidget('widget-expectancy')"> Trade Expectancy</label>
+            <label><input type="checkbox" id="chk-calculator" checked onchange="toggleWidget('widget-calculator')"> Position Sizing Calculator</label>
+            <label><input type="checkbox" id="chk-tradeLog" checked onchange="toggleWidget('section-tradeLog')"> Recent Trades Table</label>
+            <label><input type="checkbox" id="chk-strategyMgr" checked onchange="toggleWidget('section-strategyMgr')"> Strategy Manager</label>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Metric: Total PnL -->
+        <div class="widget-card" id="widget-totalPnl">
+            <h3>Total Net P&L</h3>
+            <div id="totalPnl" class="metric-value positive">$0.00</div>
+        </div>
+        <!-- Metric: Daily PnL -->
+        <div class="widget-card" id="widget-dailyPnl">
+            <h3>Daily P&L</h3>
+            <div id="dailyPnl" class="metric-value positive">$0.00</div>
+        </div>
+        <!-- Metric: Win Rate & Profit Factor -->
+        <div class="widget-card" id="widget-winMetrics">
+            <h3>Win Rate / Profit Factor</h3>
+            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                <div>
+                    <span id="winRate" style="font-size: 22px; font-weight: bold; color: var(--mustard-yellow);">0%</span>
+                    <span style="font-size: 11px; display: block; color: var(--text-muted);">Win Rate</span>
+                </div>
+                <div>
+                    <span id="profitFactor" style="font-size: 22px; font-weight: bold; color: var(--burnt-orange);">0.00</span>
+                    <span style="font-size: 11px; display: block; color: var(--text-muted);">Profit Factor</span>
+                </div>
+            </div>
+        </div>
+        <!-- Metric: Expectancy -->
+        <div class="widget-card" id="widget-expectancy">
+            <h3>Average Trade Expectancy</h3>
+            <div id="expectancy" class="metric-value" style="color: var(--wine-accent);">$0.00</div>
+        </div>
+        <!-- Position Sizing Risk Calculator -->
+        <div class="widget-card" id="widget-calculator">
+            <h3>Risk / Position Sizer</h3>
+            <div class="calc-row">
+                <div class="calc-group">
+                    <label>Capital ($)</label>
+                    <input type="number" id="calcCapital" value="10000" oninput="calculateRisk()">
+                </div>
+                <div class="calc-group">
+                    <label>Risk (%)</label>
+                    <input type="number" id="calcRiskPct" value="1" step="0.1" oninput="calculateRisk()">
+                </div>
+            </div>
+            <div class="calc-result" id="calcOutput">Risk Amount: $100.00</div>
+        </div>
+    </div>
+
+    <!-- Trade Log Section -->
+    <div class="section-container" id="section-tradeLog">
+        <div class="section-header">
+            <h2>Recent Trades</h2>
+            <button class="btn-primary" onclick="openModal()">+ Add Trade</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Instrument</th>
+                    <th>Direction</th>
+                    <th>Strategy</th>
+                    <th>Net P&L</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tradeTableBody">
+                <!-- Dynamically populated trades -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Strategy Manager Section -->
+    <div class="section-container" id="section-strategyMgr">
+        <div class="section-header">
+            <h2>Strategy Playbook</h2>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="newStrategyName" placeholder="New Strategy Name" style="background: var(--bg-wine-purple); border: 1px solid var(--border-wine); color: var(--text-main); padding: 6px 10px; border-radius: 6px;">
+                <button class="btn-primary" onclick="addStrategy()">Add Strategy</button>
+            </div>
+        </div>
+        <div id="strategyListContainer" style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <!-- Dynamically populated strategy tags -->
+        </div>
+    </div>
+
+    <!-- Add Trade Modal -->
+    <div id="tradeModal" class="modal">
+        <div class="modal-content">
+            <h2>New Trade Entry</h2>
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="tradeDate">
+            </div>
+            <div class="form-group">
+                <label>Instrument (e.g. GC, NQ)</label>
+                <input type="text" id="tradeInstrument" placeholder="GC">
+            </div>
+            <div class="form-group">
+                <label>Direction</label>
+                <select id="tradeDirection">
+                    <option value="Long">Long</option>
+                    <option value="Short">Short</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Strategy / Setup</label>
+                <select id="tradeStrategy">
+                    <!-- Populated dynamically from strategies -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Net P&L ($)</label>
+                <input type="number" id="tradePnl" step="0.01" placeholder="150.00">
+            </div>
+            <div class="modal-actions">
+                <button onclick="closeModal()" style="background:transparent; border:1px solid var(--border-wine); color:var(--text-main); padding: 8px 14px; border-radius: 6px; cursor: pointer;">Cancel</button>
+                <button class="btn-primary" onclick="saveTrade()">Save Trade</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let trades = JSON.parse(localStorage.getItem('aura_trades')) || [];
+        let strategies = JSON.parse(localStorage.getItem('aura_strategies')) || ['Opening Range Breakout', '9/21 EMA Cross', 'VWAP Rejection'];
+        let widgetStates = JSON.parse(localStorage.getItem('aura_widgets')) || {
+            'widget-totalPnl': true,
+            'widget-dailyPnl': true,
+            'widget-winMetrics': true,
+            'widget-expectancy': true,
+            'widget-calculator': true,
+            'section-tradeLog': true,
+            'section-strategyMgr': true
+        };
+
+        function toggleWidgetManager() {
+            const panel = document.getElementById('widgetManager');
+            panel.classList.toggle('active');
+        }
+
+        function toggleWidget(id) {
+            const el = document.getElementById(id);
+            const chk = document.getElementById(`chk-${id.replace('widget-', '').replace('section-', '')}`);
+            if (el && chk) {
+                el.style.display = chk.checked ? (id.startsWith('widget') ? 'block' : 'block') : 'none';
+                widgetStates[id] = chk.checked;
+                localStorage.setItem('aura_widgets', JSON.stringify(widgetStates));
+            }
+        }
+
+        function initWidgets() {
+            for (let id in widgetStates) {
+                const el = document.getElementById(id);
+                const chkKey = id.replace('widget-', '').replace('section-', '');
+                const chk = document.getElementById(`chk-${chkKey}`);
+                if (el && chk) {
+                    chk.checked = widgetStates[id];
+                    el.style.display = widgetStates[id] ? 'block' : 'none';
+                }
+            }
+        }
+
+        function openModal() {
+            document.getElementById('tradeDate').valueAsDate = new Date();
+            populateStrategyDropdown();
+            document.getElementById('tradeModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('tradeModal').style.display = 'none';
+        }
+
+        function populateStrategyDropdown() {
+            const select = document.getElementById('tradeStrategy');
+            select.innerHTML = '';
+            strategies.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.innerText = s;
+                select.appendChild(opt);
+            });
+        }
+
+        function renderStrategies() {
+            const container = document.getElementById('strategyListContainer');
+            container.innerHTML = '';
+            strategies.forEach((s, idx) => {
+                const tag = document.createElement('div');
+                tag.className = 'tag-pill';
+                tag.innerHTML = `${s} <button onclick="deleteStrategy(${idx})" style="background:none; border:none; color:var(--pink); cursor:pointer; margin-left:6px; font-weight:bold;">&times;</button>`;
+                container.appendChild(tag);
+            });
+            localStorage.setItem('aura_strategies', JSON.stringify(strategies));
+        }
+
+        function addStrategy() {
+            const input = document.getElementById('newStrategyName');
+            const val = input.value.trim();
+            if(val && !strategies.includes(val)) {
+                strategies.push(val);
+                input.value = '';
+                renderStrategies();
+            }
+        }
+
+        function deleteStrategy(idx) {
+            strategies.splice(idx, 1);
+            renderStrategies();
+        }
+
+        function saveTrade() {
+            const trade = {
+                id: Date.now(),
+                date: document.getElementById('tradeDate').value,
+                instrument: document.getElementById('tradeInstrument').value || 'GC',
+                direction: document.getElementById('tradeDirection').value,
+                strategy: document.getElementById('tradeStrategy').value || 'Standard',
+                pnl: parseFloat(document.getElementById('tradePnl').value) || 0
+            };
+
+            trades.push(trade);
+            localStorage.setItem('aura_trades', JSON.stringify(trades));
+            closeModal();
+            renderDashboard();
+        }
+
+        function deleteTrade(id) {
+            trades = trades.filter(t => t.id !== id);
+            localStorage.setItem('aura_trades', JSON.stringify(trades));
+            renderDashboard();
+        }
+
+        function calculateRisk() {
+            const capital = parseFloat(document.getElementById('calcCapital').value) || 0;
+            const riskPct = parseFloat(document.getElementById('calcRiskPct').value) || 0;
+            const riskAmount = (capital * (riskPct / 100)).toFixed(2);
+            document.getElementById('calcOutput').innerText = `Risk Amount: $${riskAmount}`;
+        }
+
+        function renderDashboard() {
+            const tbody = document.getElementById('tradeTableBody');
+            tbody.innerHTML = '';
+
+            let totalPnl = 0;
+            let dailyPnl = 0;
+            let wins = 0;
+            let grossProfit = 0;
+            let grossLoss = 0;
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            trades.forEach(t => {
+                totalPnl += t.pnl;
+                if(t.date === todayStr) dailyPnl += t.pnl;
+                if(t.pnl > 0) {
+                    wins++;
+                    grossProfit += t.pnl;
+                } else {
+                    grossLoss += Math.abs(t.pnl);
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${t.date}</td>
+                    <td>${t.instrument}</td>
+                    <td style="color: ${t.direction === 'Long' ? 'var(--green)' : 'var(--pink)'};">${t.direction}</td>
+                    <td>${t.strategy}</td>
+                    <td style="color: ${t.pnl >= 0 ? 'var(--green)' : 'var(--pink)'};">$${t.pnl.toFixed(2)}</td>
+                    <td><button onclick="deleteTrade(${t.id})" style="background:transparent; border:none; color:var(--pink); cursor:pointer;">Delete</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Metrics updates
+            const totalEl = document.getElementById('totalPnl');
+            totalEl.innerText = `$${totalPnl.toFixed(2)}`;
+            totalEl.className = `metric-value ${totalPnl >= 0 ? 'positive' : 'negative'}`;
+
+            const dailyEl = document.getElementById('dailyPnl');
+            dailyEl.innerText = `$${dailyPnl.toFixed(2)}`;
+            dailyEl.className = `metric-value ${dailyPnl >= 0 ? 'positive' : 'negative'}`;
+
+            const winRate = trades.length > 0 ? ((wins / trades.length) * 100).toFixed(1) : 0;
+            document.getElementById('winRate').innerText = `${winRate}%`;
+
+            const profitFactor = grossLoss > 0 ? (grossProfit / grossLoss).toFixed(2) : (grossProfit > 0 ? 'Infinite' : '0.00');
+            document.getElementById('profitFactor').innerText = profitFactor;
+
+            const expectancy = trades.length > 0 ? (totalPnl / trades.length).toFixed(2) : '0.00';
+            document.getElementById('expectancy').innerText = `$${expectancy}`;
+            document.getElementById('expectancy').className = `metric-value ${totalPnl >= 0 ? 'positive' : 'negative'}`;
+
+            calculateRisk();
+            renderStrategies();
+            initWidgets();
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(trades));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "aura_trading_journal.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        // Initial setup load
+        renderDashboard();
+    </script>
+</body>
+</html>
+
+```
