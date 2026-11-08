@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aura Trading - Professional Futures Journal</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-wine-purple: #170d19;
@@ -30,7 +29,7 @@
             background-color: var(--bg-wine-purple);
             color: var(--text-main);
             min-height: 100vh;
-            padding: 20px;
+            padding: 24px;
         }
 
         header {
@@ -67,6 +66,10 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .full-width-grid {
             margin-bottom: 25px;
         }
 
@@ -161,6 +164,44 @@
             font-size: 14px;
             color: var(--mustard-yellow);
             font-weight: bold;
+        }
+
+        /* Permanent Calendar Widget */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .cal-header {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: bold;
+            padding-bottom: 4px;
+        }
+
+        .cal-day {
+            background: var(--bg-wine-purple);
+            border: 1px solid var(--border-wine);
+            border-radius: 4px;
+            padding: 8px 4px;
+            font-size: 12px;
+            min-height: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .cal-day.has-trade-win {
+            background: rgba(46, 204, 113, 0.15);
+            border-color: var(--green);
+        }
+
+        .cal-day.has-trade-loss {
+            background: rgba(255, 101, 132, 0.15);
+            border-color: var(--pink);
         }
 
         /* Tables & Sections */
@@ -307,6 +348,7 @@
             <label><input type="checkbox" id="chk-winMetrics" checked onchange="toggleWidget('widget-winMetrics')"> Win Rate / Profit Factor</label>
             <label><input type="checkbox" id="chk-expectancy" checked onchange="toggleWidget('widget-expectancy')"> Trade Expectancy</label>
             <label><input type="checkbox" id="chk-calculator" checked onchange="toggleWidget('widget-calculator')"> Position Sizing Calculator</label>
+            <label><input type="checkbox" id="chk-calendar" checked onchange="toggleWidget('widget-calendar')"> Performance Calendar</label>
             <label><input type="checkbox" id="chk-tradeLog" checked onchange="toggleWidget('section-tradeLog')"> Recent Trades Table</label>
             <label><input type="checkbox" id="chk-strategyMgr" checked onchange="toggleWidget('section-strategyMgr')"> Strategy Manager</label>
         </div>
@@ -356,6 +398,17 @@
                 </div>
             </div>
             <div class="calc-result" id="calcOutput">Risk Amount: $100.00</div>
+        </div>
+    </div>
+
+    <!-- Full-Width Performance Calendar Widget -->
+    <div class="widget-card full-width-grid" id="widget-calendar">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="margin-bottom:0; font-size:15px; color:var(--text-main);">Performance Calendar</h3>
+            <span id="calendarMonthYear" style="font-size: 14px; color: var(--pink); font-weight: bold;"></span>
+        </div>
+        <div class="calendar-grid" id="calendarGrid">
+            <!-- Dynamically populated calendar days -->
         </div>
     </div>
 
@@ -441,6 +494,7 @@
             'widget-winMetrics': true,
             'widget-expectancy': true,
             'widget-calculator': true,
+            'widget-calendar': true,
             'section-tradeLog': true,
             'section-strategyMgr': true
         };
@@ -454,7 +508,7 @@
             const el = document.getElementById(id);
             const chk = document.getElementById(`chk-${id.replace('widget-', '').replace('section-', '')}`);
             if (el && chk) {
-                el.style.display = chk.checked ? (id.startsWith('widget') ? 'block' : 'block') : 'none';
+                el.style.display = chk.checked ? 'block' : 'none';
                 widgetStates[id] = chk.checked;
                 localStorage.setItem('aura_widgets', JSON.stringify(widgetStates));
             }
@@ -549,6 +603,62 @@
             document.getElementById('calcOutput').innerText = `Risk Amount: $${riskAmount}`;
         }
 
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            document.getElementById('calendarMonthYear').innerText = `${monthNames[month]} ${year}`;
+
+            const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+            daysOfWeek.forEach(d => {
+                const header = document.createElement('div');
+                header.className = 'cal-header';
+                header.innerText = d;
+                grid.appendChild(header);
+            });
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+
+            let dailyPnlMap = {};
+            trades.forEach(t => {
+                if(!dailyPnlMap[t.date]) dailyPnlMap[t.date] = 0;
+                dailyPnlMap[t.date] += t.pnl;
+            });
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                grid.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= totalDays; day++) {
+                const cell = document.createElement('div');
+                cell.className = 'cal-day';
+                
+                const monthStr = String(month + 1).padStart(2, '0');
+                const dayStr = String(day).padStart(2, '0');
+                const dateKey = `${year}-${monthStr}-${dayStr}`;
+
+                let dayHtml = `<span style="font-weight:bold; color:var(--text-muted);">${day}</span>`;
+                
+                if (dailyPnlMap[dateKey] !== undefined) {
+                    const pnl = dailyPnlMap[dateKey];
+                    cell.classList.add(pnl >= 0 ? 'has-trade-win' : 'has-trade-loss');
+                    dayHtml += `<span style="font-size:10px; font-weight:bold; color:${pnl >= 0 ? 'var(--green)' : 'var(--pink)'};">$${pnl.toFixed(0)}</span>`;
+                } else {
+                    dayHtml += `<span style="font-size:10px; color:transparent;">-</span>`;
+                }
+
+                cell.innerHTML = dayHtml;
+                grid.appendChild(cell);
+            }
+        }
+
         function renderDashboard() {
             const tbody = document.getElementById('tradeTableBody');
             tbody.innerHTML = '';
@@ -582,7 +692,6 @@
                 tbody.appendChild(tr);
             });
 
-            // Metrics updates
             const totalEl = document.getElementById('totalPnl');
             totalEl.innerText = `$${totalPnl.toFixed(2)}`;
             totalEl.className = `metric-value ${totalPnl >= 0 ? 'positive' : 'negative'}`;
@@ -603,6 +712,7 @@
 
             calculateRisk();
             renderStrategies();
+            renderCalendar();
             initWidgets();
         }
 
@@ -616,7 +726,6 @@
             downloadAnchor.remove();
         }
 
-        // Initial setup load
         renderDashboard();
     </script>
 </body>
